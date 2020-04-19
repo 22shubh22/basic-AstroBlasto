@@ -365,18 +365,27 @@ impl State for GameState {
         const DESIRED_FPS : u32 = 60;
         let seconds = 1.0 / (DESIRED_FPS as f32);
         // Update the player state based on the user input.
-        if(input::is_key_down(ctx, Key::Left)) {
-            self.input.xaxis = -1.0;
-        }
-        if(input::is_key_down(ctx, Key::Right)) {
-            self.input.xaxis =  1.0;
-        }
-        if(input::is_key_down(ctx, Key::Up)) {
-            self.input.yaxis = 1.0;
-        }
-        if(input::is_key_down(ctx, Key::Space)) {
-            self.input.fire = true;
-        }
+        self.input.xaxis = 
+            if input::is_key_down(ctx, Key::Left) {
+                -1.0
+            } else if input::is_key_down(ctx, Key::Right) {
+                1.0
+            } 
+            else {
+                0.
+            };
+        self.input.yaxis = 
+            if input::is_key_down(ctx, Key::Up) {
+                1.0
+            } else {
+                0.
+            };
+        self.input.fire = 
+            if input::is_key_down(ctx, Key::Space) {
+                true
+            } else {
+                false
+            };
         player_handle_input(&mut self.player, &self.input, seconds);
         self.player_shot_timeout -= seconds;
         if self.input.fire && self.player_shot_timeout < 0.0 {
