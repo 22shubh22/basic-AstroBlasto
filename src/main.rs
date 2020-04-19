@@ -4,6 +4,7 @@ use tetra::{self, State, Context, ContextBuilder};
 use tetra::audio;
 use tetra::graphics::{self, Color, DrawParams, Font, Texture};
 use tetra::math::Vec2;
+use tetra::input::{self,Key};
 
 type Point2 = Vec2<f32>;
 type Vector2 = Vec2<f32>;
@@ -361,9 +362,21 @@ fn draw_actor(
 impl State for GameState {
     
     fn update(&mut self, ctx: &mut Context) -> tetra::Result {
-        
-
+        const DESIRED_FPS : u32 = 60;
+        let seconds = 1.0 / (DESIRED_FPS as f32);
         // Update the player state based on the user input.
+        if(input::is_key_down(ctx, Key::Left)) {
+            self.input.xaxis = -1.0;
+        }
+        if(input::is_key_down(ctx, Key::Right)) {
+            self.input.xaxis =  1.0;
+        }
+        if(input::is_key_down(ctx, Key::Up)) {
+            self.input.yaxis = 1.0;
+        }
+        if(input::is_key_down(ctx, Key::Space)) {
+            self.input.fire = true;
+        }
         player_handle_input(&mut self.player, &self.input, seconds);
         self.player_shot_timeout -= seconds;
         if self.input.fire && self.player_shot_timeout < 0.0 {
