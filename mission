@@ -1,0 +1,5 @@
+1) create thrust
+2) rotation correct. See - world_cordinate_sys
+
+player_handle_input
+update_actor_position

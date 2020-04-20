@@ -118,7 +118,7 @@ fn create_rocks(num: i32, exclusion: Point2, min_radius: f32, max_radius: f32) -
 }
 
 const SHOT_SPEED: f32 = 200.0;
-const SHOT_ANG_VEL: f32 = 0.1;
+// const SHOT_ANG_VEL: f32 = 0.1;
 
 // Accleration in pixels per second.
 const PLAYER_THRUST: f32 = 100.0;
@@ -390,6 +390,9 @@ impl State for GameState {
         self.player_shot_timeout -= seconds;
         if self.input.fire && self.player_shot_timeout < 0.0 {
             self.fire_player_shot(ctx);
+        }
+        if self.input.yaxis != 0.{
+            //self.player
         }
 
         //Update the physics for all actors.
