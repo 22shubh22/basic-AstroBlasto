@@ -2,7 +2,7 @@ use rand;
 
 use tetra::{self, State, Context, ContextBuilder};
 use tetra::audio;
-use tetra::graphics::{self, Color, DrawParams, Font, Texture};
+use tetra::graphics::{self, Color, DrawParams, Font, Texture, Rectangle};
 use tetra::math::Vec2;
 use tetra::input::{self,Key};
 
@@ -37,7 +37,6 @@ struct Actor {
     facing: f32,
     velocity: Vector2,
     ang_vel: f32,
-    bbox_size: f32,
 
     // lazily overload "life" with a
     // double meaning
@@ -50,10 +49,6 @@ const PLAYER_LIFE: f32 = 1.0;
 const SHOT_LIFE: f32 = 2.0;
 const ROCK_LIFE: f32 = 1.0;
 
-const PLAYER_BBOX: f32 = 12.0;
-const ROCK_BBOX: f32 = 12.0;
-const SHOT_BBOX: f32 = 6.0;
-
 const MAX_ROCK_VEL: f32 = 50.0;
 
 fn create_player() -> Actor {
@@ -63,7 +58,6 @@ fn create_player() -> Actor {
         facing: 0.0,
         velocity: Vec2::zero(),
         ang_vel: 0.0,
-        bbox_size: PLAYER_BBOX,
         life: PLAYER_LIFE,
     }
 }
@@ -75,7 +69,6 @@ fn create_rock() -> Actor {
         facing: 0.0,
         velocity: Vec2::zero(),
         ang_vel: 0.,
-        bbox_size: ROCK_BBOX,
         life: ROCK_LIFE,
     }
 }
@@ -87,7 +80,6 @@ fn create_shot() -> Actor {
         facing: 0.,
         velocity: Vec2::zero(),
         ang_vel: 0.,
-        bbox_size: SHOT_BBOX,
         life: SHOT_LIFE,
     }
 }
@@ -303,13 +295,33 @@ impl GameState {
     
     fn handle_collision(&mut self, ctx: &Context) {
         for rock in &mut self.rocks {
-            let pdistance = self.player.pos.distance(rock.pos);
-            if pdistance < (self.player.bbox_size + rock.bbox_size) {
+            let rock_image = self.assets.actor_image(rock);
+            let bound_rock = Rectangle::new (
+                rock.pos.x,
+                rock.pos.y,
+                rock_image.width() as f32,
+                rock_image.height() as f32,
+            );
+            let player_image = self.assets.actor_image(&self.player);
+            let bound_player = Rectangle::new (
+                self.player.pos.x,
+                self.player.pos.y,
+                player_image.width() as f32,
+                player_image.height() as f32,
+            );
+            if bound_rock.intersects(&bound_player) {
                 self.player.life = 0.0;
-            }
+            };
             for shot in &mut self.shots {
-                let distance = shot.pos.distance(rock.pos);
-                if distance < (shot.bbox_size + rock.bbox_size) {
+                let shot_image = self.assets.actor_image(shot);
+                let bound_shot = Rectangle::new (
+                    shot.pos.x,
+                    shot.pos.y,
+                    shot_image.width() as f32,
+                    shot_image.height() as f32,
+                );
+                if bound_rock.intersects(&bound_shot)
+                {
                     shot.life = 0.0;
                     rock.life = 0.0;
                     self.score += 1;
