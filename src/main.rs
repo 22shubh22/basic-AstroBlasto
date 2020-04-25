@@ -36,7 +36,6 @@ struct Actor {
     pos: Point2,
     facing: f32,
     velocity: Vector2,
-    ang_vel: f32,
 
     // lazily overload "life" with a
     // double meaning
@@ -57,7 +56,6 @@ fn create_player() -> Actor {
         pos: Vec2::zero(),
         facing: 0.0,
         velocity: Vec2::zero(),
-        ang_vel: 0.0,
         life: PLAYER_LIFE,
     }
 }
@@ -68,7 +66,6 @@ fn create_rock() -> Actor {
         pos: Vec2::zero(),
         facing: 0.0,
         velocity: Vec2::zero(),
-        ang_vel: 0.,
         life: ROCK_LIFE,
     }
 }
@@ -79,7 +76,6 @@ fn create_shot() -> Actor {
         pos: Vec2::zero(),
         facing: 0.,
         velocity: Vec2::zero(),
-        ang_vel: 0.,
         life: SHOT_LIFE,
     }
 }
@@ -110,7 +106,6 @@ fn create_rocks(num: i32, exclusion: Point2, min_radius: f32, max_radius: f32) -
 }
 
 const SHOT_SPEED: f32 = 200.0;
-// const SHOT_ANG_VEL: f32 = 0.1;
 
 // Accleration in pixels per second.
 const PLAYER_THRUST: f32 = 100.0;
@@ -163,7 +158,6 @@ fn update_actor_position(actor: &mut Actor, dt: f32) {
     }
     let dv = actor.velocity * (dt);
     actor.pos += dv;
-    actor.facing += actor.ang_vel;
 }
 
 /// Takes an actor and wraps its position to the bounds of the
