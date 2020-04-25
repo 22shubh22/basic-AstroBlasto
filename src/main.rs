@@ -50,33 +50,35 @@ const ROCK_LIFE: f32 = 1.0;
 
 const MAX_ROCK_VEL: f32 = 50.0;
 
-fn create_player() -> Actor {
-    Actor {
-        tag: ActorType::Player,
-        pos: Vec2::zero(),
-        facing: 0.0,
-        velocity: Vec2::zero(),
-        life: PLAYER_LIFE,
+impl Actor {
+    fn create_player() -> Actor {
+        Actor {
+            tag: ActorType::Player,
+            pos: Vec2::zero(),
+            facing: 0.0,
+            velocity: Vec2::zero(),
+            life: PLAYER_LIFE,
+        }
     }
-}
-
-fn create_rock() -> Actor {
-    Actor {
-        tag: ActorType::Rock,
-        pos: Vec2::zero(),
-        facing: 0.0,
-        velocity: Vec2::zero(),
-        life: ROCK_LIFE,
+    
+    fn create_rock() -> Actor {
+        Actor {
+            tag: ActorType::Rock,
+            pos: Vec2::zero(),
+            facing: 0.0,
+            velocity: Vec2::zero(),
+            life: ROCK_LIFE,
+        }
     }
-}
 
-fn create_shot() -> Actor {
-    Actor {
-        tag: ActorType::Shot,
-        pos: Vec2::zero(),
-        facing: 0.,
-        velocity: Vec2::zero(),
-        life: SHOT_LIFE,
+    fn create_shot() -> Actor {
+        Actor {
+            tag: ActorType::Shot,
+            pos: Vec2::zero(),
+            facing: 0.,
+            velocity: Vec2::zero(),
+            life: SHOT_LIFE,
+        }
     }
 }
 
@@ -93,7 +95,7 @@ fn create_shot() -> Actor {
 fn create_rocks(num: i32, exclusion: Point2, min_radius: f32, max_radius: f32) -> Vec<Actor> {
     let new_rock = |_| {
         assert!(max_radius > min_radius);
-        let mut rock = create_rock();
+        let mut rock = Actor::create_rock();
         //random angle
         let r_angle = rand::random::<f32>() * 2.0 * std::f32::consts::PI;
         let r_distance = rand::random::<f32>() * (max_radius - min_radius) + min_radius;
@@ -247,7 +249,7 @@ impl GameState {
         print_instruction();
 
         let assets = Assets::new(ctx)?;
-        let player = create_player();
+        let player = Actor::create_player();
         let rocks = create_rocks(5, player.pos, 100.0, 250.0);
 
         let s = GameState {
@@ -270,7 +272,7 @@ impl GameState {
         self.player_shot_timeout = PLAYER_SHOT_TIME;
     
         let player = &self.player;
-        let mut shot = create_shot();
+        let mut shot = Actor::create_shot();
         shot.pos = player.pos;
         shot.facing = player.facing;
     
