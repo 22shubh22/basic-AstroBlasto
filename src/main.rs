@@ -80,6 +80,47 @@ impl Actor {
             life: SHOT_LIFE,
         }
     }
+
+    fn player_thrust(actor: &mut Self, dt: f32) {
+        let direction_vector = vec_from_angle(actor.facing);
+        let thrust_vector = direction_vector * (PLAYER_THRUST);
+        actor.velocity += thrust_vector * (dt);
+    }
+
+    fn update_actor_position(actor: &mut Self, dt: f32) {
+        // Clamp the velocity to the max efficiency
+        // The  velocity clamping  is  used  to  prevent  the  particles  from  rapid acceleration. 
+        let mag_sq = actor.velocity.magnitude_squared();
+        if mag_sq > MAX_PHYSICS_VEL.powi(2) {
+            actor.velocity = actor.velocity / mag_sq.sqrt() * MAX_PHYSICS_VEL;
+        }
+        let dv = actor.velocity * (dt);
+        actor.pos += dv;
+    }
+
+    /// Takes an actor and wraps its position to the bounds of the
+    /// screen, so if it goes off the left side of the screen it
+    /// will re-enter on the right side and so on.
+    fn wrap_actor_position(actor: &mut Self, sx: f32, sy: f32) {
+        // Wrap screen
+        let screen_x_bounds = sx / 2.0;
+        let screen_y_bounds = sy / 2.0;
+        if actor.pos.x > screen_x_bounds {
+            actor.pos.x -= sx;
+        } else if actor.pos.x < -screen_x_bounds {
+            actor.pos.x += sx;
+        };
+        if actor.pos.y > screen_y_bounds {
+            actor.pos.y -= sy;
+        } else if actor.pos.y < -screen_y_bounds {
+            actor.pos.y += sy;
+        }
+    }
+
+    // Decrease actor life with time.
+    fn handle_timed_life(actor: &mut Self, dt: f32) {
+        actor.life -= dt;
+    }
 }
 
 /// Create the given number of rocks.
@@ -138,53 +179,11 @@ fn player_handle_input(actor: &mut Actor, input: &InputState, dt: f32) {
     actor.facing += dt * PLAYER_TURN_RATE * input.xaxis;
 
     if input.yaxis > 0.0 {
-        player_thrust(actor, dt);
+        Actor::player_thrust(actor, dt);
     }
-}
-
-
-fn player_thrust(actor: &mut Actor, dt: f32) {
-    let direction_vector = vec_from_angle(actor.facing);
-    let thrust_vector = direction_vector * (PLAYER_THRUST);
-    actor.velocity += thrust_vector * (dt);
 }
 
 const MAX_PHYSICS_VEL: f32 = 250.0;
-
-fn update_actor_position(actor: &mut Actor, dt: f32) {
-    // Clamp the velocity to the max efficiency
-    // The  velocity clamping  is  used  to  prevent  the  particles  from  rapid acceleration. 
-    let mag_sq = actor.velocity.magnitude_squared();
-    if mag_sq > MAX_PHYSICS_VEL.powi(2) {
-        actor.velocity = actor.velocity / mag_sq.sqrt() * MAX_PHYSICS_VEL;
-    }
-    let dv = actor.velocity * (dt);
-    actor.pos += dv;
-}
-
-/// Takes an actor and wraps its position to the bounds of the
-/// screen, so if it goes off the left side of the screen it
-/// will re-enter on the right side and so on.
-fn wrap_actor_position(actor: &mut Actor, sx: f32, sy: f32) {
-    // Wrap screen
-    let screen_x_bounds = sx / 2.0;
-    let screen_y_bounds = sy / 2.0;
-    if actor.pos.x > screen_x_bounds {
-        actor.pos.x -= sx;
-    } else if actor.pos.x < -screen_x_bounds {
-        actor.pos.x += sx;
-    };
-    if actor.pos.y > screen_y_bounds {
-        actor.pos.y -= sy;
-    } else if actor.pos.y < -screen_y_bounds {
-        actor.pos.y += sy;
-    }
-}
-
-// shot: may be
-fn handle_timed_life(actor: &mut Actor, dt: f32) {
-    actor.life -= dt;
-}
 
 /// Translates the world coordinate system, which
 /// has Y pointing up and the origin at the center,
@@ -405,8 +404,8 @@ impl State for GameState {
 
         //Update the physics for all actors.
         // First the player...
-        update_actor_position(&mut self.player, seconds);
-        wrap_actor_position(
+        Actor::update_actor_position(&mut self.player, seconds);
+        Actor::wrap_actor_position(
             &mut self.player,
             self.screen_width as f32,
             self.screen_height as f32,
@@ -414,9 +413,9 @@ impl State for GameState {
 
         // Then the shots...
         for act in &mut self.shots {
-            update_actor_position(act, seconds);
-            wrap_actor_position(act, self.screen_width as f32, self.screen_height as f32);
-            handle_timed_life(act, seconds);
+            Actor::update_actor_position(act, seconds);
+            Actor::wrap_actor_position(act, self.screen_width as f32, self.screen_height as f32);
+            Actor::handle_timed_life(act, seconds);
         }
 
         // Handle the results of things moving:
