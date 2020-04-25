@@ -6,6 +6,15 @@ use tetra::graphics::{self, Color, DrawParams, Font, Texture, Rectangle};
 use tetra::math::Vec2;
 use tetra::input::{self,Key};
 
+const SHOT_SPEED: f32 = 200.0;
+
+// Accleration in pixels per second.
+const PLAYER_THRUST: f32 = 100.0;
+// Rotation in radians per second.
+const PLAYER_TURN_RATE: f32 = 3.0;
+// Seconds between shots
+const PLAYER_SHOT_TIME: f32 = 0.5;
+
 type Point2 = Vec2<f32>;
 type Vector2 = Vec2<f32>;
 
@@ -33,6 +42,7 @@ enum ActorType {
 #[derive(Debug)]
 struct Actor {
     tag: ActorType,
+    texture: Texture,
     pos: Point2,
     facing: f32,
     velocity: Vector2,
@@ -51,14 +61,16 @@ const ROCK_LIFE: f32 = 1.0;
 const MAX_ROCK_VEL: f32 = 50.0;
 
 impl Actor {
-    fn create_player() -> Actor {
-        Actor {
+    fn create_player(ctx: &mut Context) -> tetra::Result<Actor> {
+        let player_texture = Texture::new(ctx, "./resources/player.png")?;
+        Ok( Actor {
             tag: ActorType::Player,
+            texture: player_texture,
             pos: Vec2::zero(),
             facing: 0.0,
             velocity: Vec2::zero(),
             life: PLAYER_LIFE,
-        }
+        })
     }
     
     fn create_rock() -> Actor {
@@ -71,14 +83,16 @@ impl Actor {
         }
     }
 
-    fn create_shot() -> Actor {
-        Actor {
+    fn create_shot(ctx: &mut Context) -> tetra::Result<Actor> {
+        let shot_texture = Texture::new(ctx, "./resources/shot.png")?;
+        Ok( Actor {
             tag: ActorType::Shot,
+            texture: shot_texture,
             pos: Vec2::zero(),
             facing: 0.,
             velocity: Vec2::zero(),
             life: SHOT_LIFE,
-        }
+        })
     }
 
     fn player_thrust(actor: &mut Self, dt: f32) {
@@ -147,15 +161,6 @@ fn create_rocks(num: i32, exclusion: Point2, min_radius: f32, max_radius: f32) -
     };
     (0..num).map(new_rock).collect()
 }
-
-const SHOT_SPEED: f32 = 200.0;
-
-// Accleration in pixels per second.
-const PLAYER_THRUST: f32 = 100.0;
-// Rotation in radians per second.
-const PLAYER_TURN_RATE: f32 = 3.0;
-// Seconds between shots
-const PLAYER_SHOT_TIME: f32 = 0.5;
 
 // GameState Input Struct
 #[derive(Debug)]
@@ -248,7 +253,7 @@ impl GameState {
         print_instruction();
 
         let assets = Assets::new(ctx)?;
-        let player = Actor::create_player();
+        let player = Actor::create_player(ctx)?;
         let rocks = create_rocks(5, player.pos, 100.0, 250.0);
 
         let s = GameState {
@@ -267,11 +272,11 @@ impl GameState {
         Ok(s)
     }
     
-    fn fire_player_shot(&mut self, ctx: &Context) {
+    fn fire_player_shot(&mut self, ctx: &mut Context) -> tetra::Result{
         self.player_shot_timeout = PLAYER_SHOT_TIME;
     
         let player = &self.player;
-        let mut shot = Actor::create_shot();
+        let mut shot = Actor::create_shot(ctx)?;
         shot.pos = player.pos;
         shot.facing = player.facing;
     
@@ -281,6 +286,8 @@ impl GameState {
     
         self.shots.push(shot);
         let _ = self.assets.shot_sound.play(ctx);
+
+        Ok(())
     }
     
     fn clear_dead_stuff(&mut self) {
