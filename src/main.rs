@@ -228,37 +228,19 @@ fn world_to_screen_coords(screen_width: f32, screen_height: f32, point: Point2) 
 } 
 
 struct Assets {
-    player_image: Texture,
-    shot_image: Texture,
-    rock_image: Texture,
     shot_sound: audio::Sound,
     hit_sound: audio::Sound,
 }
 
 impl Assets {
     fn new(ctx: &mut Context) -> tetra::Result<Assets> {
-        let player_image = Texture::new(ctx, "./resources/player.png")?;
-        let shot_image = Texture::new(ctx, "./resources/shot.png")?;
-        let rock_image = Texture::new(ctx, "./resources/rock.png")?;
 
         let shot_sound = audio::Sound::new("./resources/pew.wav")?;
         let hit_sound = audio::Sound::new("./resources/boom.flac")?;
 
         Ok(Assets {
-            player_image,
-            shot_image,
-            rock_image,
-            shot_sound,
             hit_sound,
         })
-    }
-
-    fn actor_image(&mut self, actor: &Actor) -> &mut Texture {
-        match actor.tag {
-            ActorType::Player => &mut self.player_image,
-            ActorType::Rock => &mut self.rock_image,
-            ActorType::Shot => &mut self.shot_image,
-        }
     }
 }
 
@@ -324,14 +306,14 @@ impl GameState {
     
     fn handle_collision(&mut self, ctx: &Context) {
         for rock in &mut self.rocks {
-            let rock_image = self.assets.actor_image(rock);
+            let rock_image = &rock.texture;
             let bound_rock = Rectangle::new (
                 rock.pos.x,
                 rock.pos.y,
                 rock_image.width() as f32,
                 rock_image.height() as f32,
             );
-            let player_image = self.assets.actor_image(&self.player);
+            let player_image = &self.player.texture;
             let bound_player = Rectangle::new (
                 self.player.pos.x,
                 self.player.pos.y,
@@ -342,7 +324,7 @@ impl GameState {
                 self.player.life = 0.0;
             };
             for shot in &mut self.shots {
-                let shot_image = self.assets.actor_image(shot);
+                let shot_image = &shot.texture;
                 let bound_shot = Rectangle::new (
                     shot.pos.x,
                     shot.pos.y,
@@ -384,14 +366,13 @@ fn print_instruction() {
 }
 
 fn draw_actor(
-    assets: &mut Assets,
     ctx: &mut Context,
     actor: &Actor,
     world_coords: (f32, f32),
 ) -> tetra::Result {
     let (screen_w, screen_h) = world_coords;
     let pos = world_to_screen_coords(screen_w, screen_h, actor.pos);
-    let image = assets.actor_image(actor);
+    let image = &actor.texture;
     let drawparams = graphics::DrawParams::new()
         .position(pos)
         .rotation(actor.facing as f32)
@@ -478,18 +459,17 @@ impl State for GameState {
 
         // Loop over all objects drawing them...
         {
-            let assets = &mut self.assets;
             let coords = (self.screen_width, self.screen_height);
 
             let p = &self.player;
-            draw_actor(assets, ctx, p, coords)?;
+            draw_actor(ctx, p, coords)?;
 
             for s in &self.shots {
-                draw_actor(assets, ctx, s, coords)?;
+                draw_actor(ctx, s, coords)?;
             }
 
             for r in &self.rocks {
-                draw_actor(assets, ctx, r, coords)?;
+                draw_actor(ctx, r, coords)?;
             }
         }
 
