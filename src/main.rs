@@ -5,6 +5,7 @@ use tetra::audio;
 use tetra::graphics::{self, Color, DrawParams, Font, Texture, Rectangle};
 use tetra::math::Vec2;
 use tetra::input::{self,Key};
+use std::result;
 
 const SHOT_SPEED: f32 = 200.0;
 
@@ -73,14 +74,16 @@ impl Actor {
         })
     }
     
-    fn create_rock() -> Actor {
-        Actor {
+    fn create_rock(ctx: &mut Context) -> tetra::Result<Actor> {
+        let rock_texture = Texture::new(ctx, "./resources/rock.png")?;
+        Ok(Actor {
             tag: ActorType::Rock,
+            texture: rock_texture,
             pos: Vec2::zero(),
             facing: 0.0,
             velocity: Vec2::zero(),
             life: ROCK_LIFE,
-        }
+        })
     }
 
     fn create_shot(ctx: &mut Context) -> tetra::Result<Actor> {
@@ -147,19 +150,43 @@ impl Actor {
 
 // Params: num - num. of rocks to generate
 // min_radius, max_radius - radius range for rocks.
-fn create_rocks(num: i32, exclusion: Point2, min_radius: f32, max_radius: f32) -> Vec<Actor> {
-    let new_rock = |_| {
+fn create_rocks(ctx: &mut Context, num: i32, exclusion: Point2, min_radius: f32, max_radius: f32) -> Vec<Actor> {
+    let mut new_rock = || -> tetra::Result<Actor> {
         assert!(max_radius > min_radius);
-        let mut rock = Actor::create_rock();
+        let mut rock : Actor = Actor::create_rock(ctx)?;
         //random angle
         let r_angle = rand::random::<f32>() * 2.0 * std::f32::consts::PI;
         let r_distance = rand::random::<f32>() * (max_radius - min_radius) + min_radius;
         // rock positioned wrt player
         rock.pos = exclusion + vec_from_angle(r_angle) * r_distance;
         rock.velocity = random_vec(MAX_ROCK_VEL);
-        rock
+        Ok(rock)
     };
-    (0..num).map(new_rock).collect()
+    //let x = new_rock.ok();
+    /// new rock a type of function, baad mein call kar dene ka.
+    let mut vec : Vec<Actor> = Vec::new();
+    let mut count = 0i32;
+    loop {
+        if count == num {
+            break;
+        }
+        let y = new_rock().ok();
+        match y {
+            Some(x) => vec.push(x),
+            None => panic!("Error at rock creation?"),
+        }
+        count += 1;
+    }
+    //(0..num).map(new_rock().ok()).collect()
+    //let b : Result<Vec<_>, _>= (0..num).map(new_rock).collect();
+    //let mut iter = b.iter();
+    //iter.filter_map(|x| x.ok());
+
+    //b.iter().try_fold(0, num)
+    /*match result {
+        Ok(val) => val,
+    }*/
+    vec
 }
 
 // GameState Input Struct
@@ -254,7 +281,7 @@ impl GameState {
 
         let assets = Assets::new(ctx)?;
         let player = Actor::create_player(ctx)?;
-        let rocks = create_rocks(5, player.pos, 100.0, 250.0);
+        let rocks = create_rocks(ctx, 5, player.pos, 100.0, 250.0);
 
         let s = GameState {
             player,
@@ -334,10 +361,10 @@ impl GameState {
         }
     }
 
-    fn check_for_level_respawn(&mut self) {
+    fn check_for_level_respawn(&mut self, ctx: &mut Context) {
         if self.rocks.is_empty() {
             self.level += 1;
-            let r = create_rocks(self.level + 5, self.player.pos, 100.0, 250.0);
+            let r = create_rocks(ctx, self.level + 5, self.player.pos, 100.0, 250.0);
             self.rocks.extend(r);
         }
     }
@@ -433,7 +460,7 @@ impl State for GameState {
 
         self.clear_dead_stuff();
 
-        self.check_for_level_respawn();
+        self.check_for_level_respawn(ctx);
 
         // Finally we check for our end state
         // I wnat to have a nice death screen eventually,
