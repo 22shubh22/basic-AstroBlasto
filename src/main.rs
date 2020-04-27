@@ -40,13 +40,6 @@ fn random_vec(max_magnitude: f32) -> Vector2 {
 }
 
 #[derive(Debug)]
-enum ActorType {
-    Player,
-    Rock,
-    Shot,
-}
-
-#[derive(Debug)]
 struct Actor {
     texture: Texture,
     pos: Point2,
@@ -61,6 +54,20 @@ struct Actor {
 }
 
 impl Actor {
+    fn width(&self) -> f32 {
+        self.texture.width() as f32
+    }
+    fn height(&self) -> f32 {
+        self.texture.height() as f32
+    }
+
+    fn origin(&self) -> Vec2<f32> {
+        Vec2::new (
+            self.width() / 2.0,
+            self.height() / 2.0,
+        )
+    }
+    
     fn create_player(ctx: &mut Context) -> tetra::Result<Actor> {
         let player_texture = Texture::new(ctx, "./resources/player.png")?;
         Ok( Actor {
