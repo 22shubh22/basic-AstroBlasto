@@ -16,6 +16,12 @@ const PLAYER_TURN_RATE: f32 = 3.0;
 // Seconds between shots
 const PLAYER_SHOT_TIME: f32 = 0.5;
 
+const PLAYER_LIFE: f32 = 1.0;
+const SHOT_LIFE: f32 = 2.0;
+const ROCK_LIFE: f32 = 1.0;
+
+const MAX_ROCK_VEL: f32 = 50.0;
+
 type Point2 = Vec2<f32>;
 type Vector2 = Vec2<f32>;
 
@@ -42,7 +48,6 @@ enum ActorType {
 
 #[derive(Debug)]
 struct Actor {
-    tag: ActorType,
     texture: Texture,
     pos: Point2,
     facing: f32,
@@ -55,17 +60,10 @@ struct Actor {
     life: f32,
 }
 
-const PLAYER_LIFE: f32 = 1.0;
-const SHOT_LIFE: f32 = 2.0;
-const ROCK_LIFE: f32 = 1.0;
-
-const MAX_ROCK_VEL: f32 = 50.0;
-
 impl Actor {
     fn create_player(ctx: &mut Context) -> tetra::Result<Actor> {
         let player_texture = Texture::new(ctx, "./resources/player.png")?;
         Ok( Actor {
-            tag: ActorType::Player,
             texture: player_texture,
             pos: Vec2::zero(),
             facing: 0.0,
@@ -77,7 +75,6 @@ impl Actor {
     fn create_rock(ctx: &mut Context) -> tetra::Result<Actor> {
         let rock_texture = Texture::new(ctx, "./resources/rock.png")?;
         Ok(Actor {
-            tag: ActorType::Rock,
             texture: rock_texture,
             pos: Vec2::zero(),
             facing: 0.0,
@@ -89,7 +86,6 @@ impl Actor {
     fn create_shot(ctx: &mut Context) -> tetra::Result<Actor> {
         let shot_texture = Texture::new(ctx, "./resources/shot.png")?;
         Ok( Actor {
-            tag: ActorType::Shot,
             texture: shot_texture,
             pos: Vec2::zero(),
             facing: 0.,
@@ -239,6 +235,7 @@ impl Assets {
         let hit_sound = audio::Sound::new("./resources/boom.flac")?;
 
         Ok(Assets {
+            shot_sound,
             hit_sound,
         })
     }
