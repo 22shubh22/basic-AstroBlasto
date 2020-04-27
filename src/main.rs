@@ -376,8 +376,8 @@ fn draw_actor(
     let image = &actor.texture;
     let drawparams = graphics::DrawParams::new()
         .position(pos)
-        .rotation(actor.facing as f32)
-        .origin(Point2::new(0.5, 0.5));
+        .rotation(actor.facing)
+        .origin(actor.origin());
     graphics::draw(ctx, image, drawparams);
     Ok(())
 }
