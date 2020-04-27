@@ -67,7 +67,7 @@ impl Actor {
             self.height() / 2.0,
         )
     }
-    
+
     fn create_player(ctx: &mut Context) -> tetra::Result<Actor> {
         let player_texture = Texture::new(ctx, "./resources/player.png")?;
         Ok( Actor {
@@ -310,30 +310,27 @@ impl GameState {
     
     fn handle_collision(&mut self, ctx: &Context) {
         for rock in &mut self.rocks {
-            let rock_image = &rock.texture;
             let bound_rock = Rectangle::new (
                 rock.pos.x,
                 rock.pos.y,
-                rock_image.width() as f32,
-                rock_image.height() as f32,
+                rock.width(),
+                rock.height(),
             );
-            let player_image = &self.player.texture;
             let bound_player = Rectangle::new (
                 self.player.pos.x,
                 self.player.pos.y,
-                player_image.width() as f32,
-                player_image.height() as f32,
+                self.player.width(),
+                self.player.height(),
             );
             if bound_rock.intersects(&bound_player) {
                 self.player.life = 0.0;
             };
             for shot in &mut self.shots {
-                let shot_image = &shot.texture;
                 let bound_shot = Rectangle::new (
                     shot.pos.x,
                     shot.pos.y,
-                    shot_image.width() as f32,
-                    shot_image.height() as f32,
+                    shot.width(),
+                    shot.height(),
                 );
                 if bound_rock.intersects(&bound_shot)
                 {
