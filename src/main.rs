@@ -21,6 +21,7 @@ const SHOT_LIFE: f32 = 2.0;
 const ROCK_LIFE: f32 = 1.0;
 
 const MAX_ROCK_VEL: f32 = 50.0;
+const MAX_PHYSICS_VEL: f32 = 250.0;
 
 type Point2 = Vec2<f32>;
 type Vector2 = Vec2<f32>;
@@ -180,15 +181,6 @@ fn create_rocks(ctx: &mut Context, num: i32, exclusion: Point2, min_radius: f32,
         }
         count += 1;
     }
-    //(0..num).map(new_rock().ok()).collect()
-    //let b : Result<Vec<_>, _>= (0..num).map(new_rock).collect();
-    //let mut iter = b.iter();
-    //iter.filter_map(|x| x.ok());
-
-    //b.iter().try_fold(0, num)
-    /*match result {
-        Ok(val) => val,
-    }*/
     vec
 }
 
@@ -217,8 +209,6 @@ fn player_handle_input(actor: &mut Actor, input: &InputState, dt: f32) {
         Actor::player_thrust(actor, dt);
     }
 }
-
-const MAX_PHYSICS_VEL: f32 = 250.0;
 
 /// Translates the world coordinate system, which
 /// has Y pointing up and the origin at the center,
@@ -428,10 +418,10 @@ impl State for GameState {
         );
 
         // Then the shots...
-        for act in &mut self.shots {
-            Actor::update_actor_position(act, seconds);
-            Actor::wrap_actor_position(act, self.screen_width as f32, self.screen_height as f32);
-            Actor::handle_timed_life(act, seconds);
+        for shot in &mut self.shots {
+            Actor::update_actor_position(shot, seconds);
+            Actor::wrap_actor_position(shot, self.screen_width as f32, self.screen_height as f32);
+            Actor::handle_timed_life(shot, seconds);
         }
 
         // Handle the results of things moving:
