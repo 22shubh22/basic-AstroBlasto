@@ -1,4 +1,5 @@
 1) create thrust
 2) rotation correct. See - world_cordinate_sys
 
-Rocks do not move.
+* I am not moving rocks.
+* The Texture have a good margin reduce it (a good starting point, for development).
